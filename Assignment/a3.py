@@ -7,7 +7,7 @@ while input_number>0:
     if digit<smallest_number:
         second_smallest=smallest_number
         smallest_number=digit
-    elif second_smallest<digit<smallest_number:
+    elif smallest_number<digit<second_smallest:
         second_smallest=digit
     input_number//=10
 print("the second smallest number is : ",second_smallest)
