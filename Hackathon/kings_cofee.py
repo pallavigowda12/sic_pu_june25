@@ -7,6 +7,13 @@ around inventory management, staffing, promotional timing, and pricing adjustmen
 data-driven business model that not only meets customer preferences but also boosts profitability, reduces waste, 
 and strengthens overall operational efficiency.'''
 
+'''
+Descriptive	  Daily coffee sales	     Latte identified as the most popular beverage.
+Diagnostic	  Weekly sales drop pattern	 Notable dips on midweek and Sundays for multiple items.
+Predictive	  Monthly sales forecasting	 Latte and Cold Brew projected to maintain strong demand.
+Prescriptive  Pricing strategy based on  traffic trends	Dynamic pricing recommended during slow hours.'''
+
+
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import sqlite3
