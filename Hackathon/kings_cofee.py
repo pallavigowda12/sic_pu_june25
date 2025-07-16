@@ -16,121 +16,111 @@ Prescriptive  Pricing strategy based on  traffic trends	Dynamic pricing recommen
 
 import tkinter as tk
 from tkinter import filedialog, messagebox
-import sqlite3
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
-# ------------------ DataManager Class ------------------
+# ------------ Data Manager ------------
 class DataManager:
     def __init__(self):
         self.df = None
 
-    def load_default_data(self):
+    def load_kaggle_data(self):
         try:
-            self.df = pd.read_csv("coffee_shop_revenue.csv")  # Replace with Kaggle path
-            messagebox.showinfo("Success", "Default Kaggle dataset loaded.")
+            self.df = pd.read_csv("coffee_shop_data.csv")  # Change to Kaggle file name
+            messagebox.showinfo("Loaded", "Kaggle dataset loaded successfully.")
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to load default data: {e}")
+            messagebox.showerror("Error", f"Could not load Kaggle data.\n{e}")
 
     def import_csv(self):
-        file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
-        if file_path:
+        path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+        if path:
             try:
-                self.df = pd.read_csv(file_path)
-                messagebox.showinfo("Success", "CSV file imported successfully.")
+                self.df = pd.read_csv(path)
+                messagebox.showinfo("Imported", "CSV file imported.")
             except Exception as e:
-                messagebox.showerror("Error", f"Failed to import CSV: {e}")
+                messagebox.showerror("Error", f"CSV import failed.\n{e}")
 
-# ------------------ Analysis Class ------------------
+# ------------ Analytics ------------
 class CoffeeAnalytics:
     def __init__(self, df):
         self.df = df
+        self.df['Date'] = pd.to_datetime(self.df['Date'], errors='coerce')
 
     def descriptive(self):
-        print("Descriptive Analysis:")
+        print("\n📊 Descriptive Analysis:")
         print(self.df.describe())
-        self.df.hist(figsize=(12, 8), color='skyblue', edgecolor='black')
-        plt.suptitle("Descriptive Analysis")
-        plt.show()
+        print("\nBy Coffee Type:")
+        print(self.df.groupby('Coffee_Type')[['Units_Sold', 'Daily_Revenue']].sum())
+        self.df.groupby('Coffee_Type')['Daily_Revenue'].sum().plot(kind='bar', color='sienna')
+        plt.title("Total Revenue by Coffee Type")
+        plt.ylabel("Revenue ₹"); plt.xticks(rotation=45); plt.tight_layout(); plt.show()
 
     def diagnostic(self):
-        print("Diagnostic Analysis:")
-        if 'Daily_Revenue' in self.df.columns:
-            plt.plot(self.df['Daily_Revenue'], marker='o')
-            plt.title("Daily Revenue Trend")
-            plt.xlabel("Day")
-            plt.ylabel("Revenue")
-            plt.show()
-        else:
-            print("Column 'Daily_Revenue' not found.")
+        print("\n🔍 Diagnostic Analysis:")
+        for c in self.df['Coffee_Type'].unique():
+            sub = self.df[self.df['Coffee_Type'] == c]
+            plt.plot(sub['Date'], sub['Daily_Revenue'], marker='o', label=c)
+        plt.title("Daily Revenue Trend by Coffee Type")
+        plt.xlabel("Date"); plt.ylabel("Revenue ₹")
+        plt.legend(); plt.xticks(rotation=45); plt.tight_layout(); plt.show()
 
     def predictive(self):
-        print("Predictive Analysis:")
-        if 'Daily_Revenue' in self.df.columns:
-            self.df['Revenue_MA'] = self.df['Daily_Revenue'].rolling(window=5).mean()
-            plt.plot(self.df['Daily_Revenue'], label='Actual')
-            plt.plot(self.df['Revenue_MA'], label='Forecast', color='orange')
-            plt.title("Revenue Forecast")
-            plt.legend()
-            plt.show()
-        else:
-            print("Column 'Daily_Revenue' not found.")
+        print("\n📈 Predictive Analysis:")
+        for c in self.df['Coffee_Type'].unique():
+            sub = self.df[self.df['Coffee_Type'] == c].copy()
+            sub['Forecast'] = sub['Daily_Revenue'].rolling(window=3).mean()
+            plt.plot(sub['Date'], sub['Forecast'], label=f"{c} Forecast")
+        plt.title("Forecasted Revenue (Moving Average)")
+        plt.xlabel("Date"); plt.ylabel("Revenue ₹")
+        plt.legend(); plt.xticks(rotation=45); plt.tight_layout(); plt.show()
 
     def prescriptive(self):
-        print("Prescriptive Analysis:")
-        if 'Daily_Revenue' in self.df.columns:
-            slow_days = self.df[self.df['Daily_Revenue'] < self.df['Daily_Revenue'].mean()]
-            print("Recommend dynamic pricing on these days:\n", slow_days.index.tolist())
-        else:
-            print("Column 'Daily_Revenue' not found.")
+        print("\n🧠 Prescriptive Analysis:")
+        avg = self.df['Daily_Revenue'].mean()
+        slow = self.df[self.df['Daily_Revenue'] < avg]
+        print("Days Below Average:\n", slow[['Date', 'Coffee_Type', 'Daily_Revenue']])
+        print("\nCoffee Types to Consider for Dynamic Pricing:")
+        print(slow['Coffee_Type'].value_counts())
+        slow.groupby('Coffee_Type')['Daily_Revenue'].mean().plot(kind='barh', color='crimson')
+        plt.title("Target Types for Pricing Strategy")
+        plt.xlabel("Avg Revenue ₹"); plt.tight_layout(); plt.show()
 
-# ------------------ GUI Class ------------------
+# ------------ GUI App ------------
 class CoffeeApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Coffee Shop Analytics")
-        self.root.geometry("500x400")
-        self.data_manager = DataManager()
+        self.root.title("Kings Coffee Intelligence System ☕")
+        self.root.geometry("500x430")
+        self.data = DataManager()
 
-        tk.Label(root, text="☕ Coffee Shop Analytics", font=("Helvetica", 16)).pack(pady=10)
+        tk.Label(root, text="Coffee Analytics Dashboard", font=("Helvetica", 16)).pack(pady=10)
+        tk.Button(root, text="Load Kaggle Dataset", command=self.data.load_kaggle_data).pack(pady=5)
+        tk.Button(root, text="Import Custom CSV", command=self.data.import_csv).pack(pady=5)
+        tk.Label(root, text="Select Analysis Type:", font=("Helvetica", 12)).pack(pady=10)
 
-        tk.Button(root, text="Load Kaggle Dataset", command=self.data_manager.load_default_data).pack(pady=5)
-        tk.Button(root, text="Import CSV File", command=self.data_manager.import_csv).pack(pady=5)
-
-        tk.Label(root, text="Choose Analysis Type:", font=("Helvetica", 12)).pack(pady=10)
-
-        tk.Button(root, text="Descriptive Analysis", command=self.run_descriptive).pack(pady=5)
-        tk.Button(root, text="Diagnostic Analysis", command=self.run_diagnostic).pack(pady=5)
-        tk.Button(root, text="Predictive Analysis", command=self.run_predictive).pack(pady=5)
-        tk.Button(root, text="Prescriptive Analysis", command=self.run_prescriptive).pack(pady=5)
+        tk.Button(root, text="📊 Dialy cofee sales", command=self.run_descriptive).pack(pady=5)
+        tk.Button(root, text="🔍 Weekly sales of a cofee", command=self.run_diagnostic).pack(pady=5)
+        tk.Button(root, text="📈 Monthly sales forecasting", command=self.run_predictive).pack(pady=5)
+        tk.Button(root, text="🧠 Pricing Strategy", command=self.run_prescriptive).pack(pady=5)
 
     def run_descriptive(self):
-        if self.data_manager.df is not None:
-            CoffeeAnalytics(self.data_manager.df).descriptive()
-        else:
-            messagebox.showwarning("No Data", "Please load or import a dataset first.")
+        if self.data.df is not None: CoffeeAnalytics(self.data.df).descriptive()
+        else: messagebox.showwarning("No Data", "Please load a dataset.")
 
     def run_diagnostic(self):
-        if self.data_manager.df is not None:
-            CoffeeAnalytics(self.data_manager.df).diagnostic()
-        else:
-            messagebox.showwarning("No Data", "Please load or import a dataset first.")
+        if self.data.df is not None: CoffeeAnalytics(self.data.df).diagnostic()
+        else: messagebox.showwarning("No Data", "Please load a dataset.")
 
     def run_predictive(self):
-        if self.data_manager.df is not None:
-            CoffeeAnalytics(self.data_manager.df).predictive()
-        else:
-            messagebox.showwarning("No Data", "Please load or import a dataset first.")
+        if self.data.df is not None: CoffeeAnalytics(self.data.df).predictive()
+        else: messagebox.showwarning("No Data", "Please load a dataset.")
 
     def run_prescriptive(self):
-        if self.data_manager.df is not None:
-            CoffeeAnalytics(self.data_manager.df).prescriptive()
-        else:
-            messagebox.showwarning("No Data", "Please load or import a dataset first.")
+        if self.data.df is not None: CoffeeAnalytics(self.data.df).prescriptive()
+        else: messagebox.showwarning("No Data", "Please load a dataset.")
 
-# ------------------ Run App ------------------
+# ------------ Run App ------------
 if __name__ == "__main__":
     root = tk.Tk()
-    app = CoffeeApp(root)
+    CoffeeApp(root)
     root.mainloop()
