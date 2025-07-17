@@ -19,7 +19,7 @@ from tkinter import filedialog, messagebox
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# ------------ Data Manager ------------
+'''Database managment'''
 class DataManager:
     def __init__(self):
         self.df = None
@@ -40,13 +40,13 @@ class DataManager:
             except Exception as e:
                 messagebox.showerror("Error", f"CSV import failed.\n{e}")
 
-# ------------ Analytics ------------
+'''Data Analysis'''
 class CoffeeAnalytics:
     def __init__(self, df):
         self.df = df
         self.df['Date'] = pd.to_datetime(self.df['Date'], errors='coerce')
 
-    def descriptive(self):
+    def descriptive(self): #Dialy Cofee Sales
         print("\n📊 Descriptive Analysis:")
         print(self.df.describe())
         print("\nBy Coffee Type:")
@@ -55,7 +55,7 @@ class CoffeeAnalytics:
         plt.title("Total Revenue by Coffee Type")
         plt.ylabel("Revenue ₹"); plt.xticks(rotation=45); plt.tight_layout(); plt.show()
 
-    def diagnostic(self):
+    def diagnostic(self): #Weekly Cofee Sales
         print("\n🔍 Diagnostic Analysis:")
         for c in self.df['Coffee_Type'].unique():
             sub = self.df[self.df['Coffee_Type'] == c]
@@ -64,7 +64,7 @@ class CoffeeAnalytics:
         plt.xlabel("Date"); plt.ylabel("Revenue ₹")
         plt.legend(); plt.xticks(rotation=45); plt.tight_layout(); plt.show()
 
-    def predictive(self):
+    def predictive(self): #Monthly Sales forecasting
         print("\n📈 Predictive Analysis:")
         for c in self.df['Coffee_Type'].unique():
             sub = self.df[self.df['Coffee_Type'] == c].copy()
@@ -74,7 +74,7 @@ class CoffeeAnalytics:
         plt.xlabel("Date"); plt.ylabel("Revenue ₹")
         plt.legend(); plt.xticks(rotation=45); plt.tight_layout(); plt.show()
 
-    def prescriptive(self):
+    def prescriptive(self): #Pricing Strategy
         print("\n🧠 Prescriptive Analysis:")
         avg = self.df['Daily_Revenue'].mean()
         slow = self.df[self.df['Daily_Revenue'] < avg]
@@ -85,7 +85,7 @@ class CoffeeAnalytics:
         plt.title("Target Types for Pricing Strategy")
         plt.xlabel("Avg Revenue ₹"); plt.tight_layout(); plt.show()
 
-# ------------ GUI App ------------
+ #Graphical User Interface
 class CoffeeApp:
     def __init__(self, root):
         self.root = root
@@ -119,7 +119,7 @@ class CoffeeApp:
         if self.data.df is not None: CoffeeAnalytics(self.data.df).prescriptive()
         else: messagebox.showwarning("No Data", "Please load a dataset.")
 
-# ------------ Run App ------------
+#Main function
 if __name__ == "__main__":
     root = tk.Tk()
     CoffeeApp(root)
