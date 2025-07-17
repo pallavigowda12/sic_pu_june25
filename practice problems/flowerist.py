@@ -1,4 +1,4 @@
-#!/bin/python3
+
 
 def getMinimumCost(k, c): # k = 2
     c.sort() # 2 5 6
