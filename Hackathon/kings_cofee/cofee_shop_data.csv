@@ -1,3 +1,10 @@
+
+
+'''Copy the data and save in any notepad or folder in csv files and import this 
+csv file after running the kings cofee code to see  the output'''
+
+
+
 Date,Coffee_Type,Units_Sold,Unit_Price,Daily_Revenue
 2025-07-01,Latte,52,150,7800
 2025-07-02,Cold Brew,38,160,6080
